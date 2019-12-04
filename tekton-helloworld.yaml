@@ -1,0 +1,102 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: tekton-helloworld-git
+spec:
+  type: git
+  params:
+    - name: revision
+      value: master
+    - name: url
+      value: https://github.com/just-do1/tekton-helloworld
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: tekton-helloworld-image
+spec:
+  type: image
+  params:
+    - name: url
+      value: 192.168.1.52/system_containers/tekton/helloworld:v0.1.0
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-docker-image-from-git-source
+spec:
+  inputs:
+    resources:
+      - name: docker-source
+        type: git
+    params:
+      - name: pathToDockerFile
+        type: string
+        description: The path to the dockerfile to build
+        default: /workspace/docker-source/Dockerfile
+      - name: pathToContext
+        type: string
+        description:
+          The build context used by Kaniko
+          (https://github.com/GoogleContainerTools/kaniko#kaniko-build-contexts)
+        default: /workspace/docker-source
+  outputs:
+    resources:
+      - name: builtImage
+        type: image
+  steps:
+    - name: build-and-push
+      image: gcr.azk8s.cn/kaniko-project/executor:v0.14.0
+      # specifying DOCKER_CONFIG is required to allow kaniko to detect docker credential
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/builder/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(inputs.params.pathToDockerFile)
+        - --destination=$(outputs.resources.builtImage.url)
+        - --context=$(inputs.params.pathToContext)
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+  annotations:
+    tekton.dev/docker-0: 192.168.1.52
+type: kubernetes.io/basic-auth
+stringData:
+  username: admin
+  password: TenxCloud001
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tutorial-service
+secrets:
+  - name: regcred
+---
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: build-docker-image-from-git-source-task-run
+spec:
+  serviceAccountName: tutorial-service
+  taskRef:
+    name: build-docker-image-from-git-source
+  inputs:
+    resources:
+      - name: docker-source
+        resourceRef:
+          name: tekton-helloworld-git 
+    params:
+      - name: pathToDockerFile
+        value: Dockerfile
+      - name: pathToContext
+        value: /workspace/docker-source
+  outputs:
+    resources:
+      - name: builtImage
+        resourceRef:
+          name: tekton-helloworld-image
+---
