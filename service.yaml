@@ -1,0 +1,13 @@
+apiVersion: serving.knative.dev/v1 # Current version of Knative
+kind: Service
+metadata:
+  name: helloworld-tekton # The name of the app
+  namespace: default # The namespace the app will use
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/target: "10"
+    spec:
+      containers:
+        - image: 
