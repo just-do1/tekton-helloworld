@@ -1,2 +1,2 @@
 FROM busybox
-ENTRYPOINT ["/bin/bash", "-c", "echo hello"]
+ENTRYPOINT ["/bin/sh", "-c", "echo hello"]
