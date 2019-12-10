@@ -1,13 +1,7 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ts
----
 apiVersion: serving.knative.dev/v1 # Current version of Knative
 kind: Service
 metadata:
   name: helloworld-tekton # The name of the app
-  namespace: ts # The namespace the app will use
 spec:
   template:
     metadata:
