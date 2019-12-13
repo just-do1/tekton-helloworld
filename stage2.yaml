@@ -1,30 +1,22 @@
-apiVersion: serving.knative.dev/v1alpha1
-kind: Route
+apiVersion: serving.knative.dev/v1
+kind: Service
 metadata:
-  name: route-demo
+  name: tekton-blue-green
   namespace: default
 spec:
-  traffic:
-  - configurationName: route-demo-config-v1
-    percent: 100
-  - configurationName: route-demo-config-v2
-    percent: 0
-    name: v2
----
-apiVersion: serving.knative.dev/v1alpha1
-kind: Configuration
-metadata:
-  name: route-demo-config-v2
-  namespace: default
-spec:
-  revisionTemplate:
+  template:
     metadata:
-      labels:
-        knative.dev/type: container
+      name: tekton-blue-green-2
     spec:
-      container:
-        image: 192.168.1.52/system_containers/gcr.cn/knative-samples/knative-route-demo:green
-        imagePullPolicy: Always
+      containers:
+      - image: 192.168.1.52/system_containers/gcr.cn/knative-samples/knative-route-demo:green
         env:
           - name: T_VERSION
             value: "green"
+  traffic:
+  - tag: current
+    revisionName: tekton-blue-green-1
+    percent: 100
+  - tag: latest
+    latestRevision: true
+    percent: 0
