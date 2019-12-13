@@ -1,0 +1,14 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/target: "10"
+    spec:
+      containers:
+        - image: nginx:1.16
+          ports:
+          - containerPort: 80

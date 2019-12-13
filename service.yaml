@@ -1,7 +1,7 @@
-apiVersion: serving.knative.dev/v1 # Current version of Knative
+apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: helloworld-tekton # The name of the app
+  name: helloworld-tekton
 spec:
   template:
     metadata:
@@ -9,4 +9,5 @@ spec:
         autoscaling.knative.dev/target: "10"
     spec:
       containers:
-        - image: 
+        - image: 192.168.1.52/system_containers/tekton/helloworld:v0.1.0
+        #- image: 192.168.1.52/system_containers/gcr.cn/knative-samples/helloworld-go
